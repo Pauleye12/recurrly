@@ -1,11 +1,9 @@
+import SignOutButton from "@/components/SignOutButton";
 import images from "@/constants/images";
-import { useClerk, useUser } from "@clerk/expo";
+import { useUser } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React from "react";
 import {
-  ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   Text,
@@ -16,30 +14,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SettingsScreen() {
   const { user } = useUser();
-  const { signOut } = useClerk();
-  const router = useRouter();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  const handleSignOut = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out of Recurrly?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            setIsSigningOut(true);
-            await signOut();
-            router.replace("/(auth)/SignIn");
-          } catch (err) {
-            console.error("Sign out error", err);
-          } finally {
-            setIsSigningOut(false);
-          }
-        },
-      },
-    ]);
-  };
 
   const displayName =
     user?.fullName ||
@@ -181,23 +155,7 @@ export default function SettingsScreen() {
 
         {/* Sign Out Button */}
         <View className="mt-8">
-          <TouchableOpacity
-            className="flex-row items-center justify-center gap-2 rounded-2xl border border-destructive/25 bg-destructive/10 py-4"
-            onPress={handleSignOut}
-            disabled={isSigningOut}
-            activeOpacity={0.8}
-          >
-            {isSigningOut ? (
-              <ActivityIndicator color="#dc2626" size="small" />
-            ) : (
-              <>
-                <Ionicons name="log-out-outline" size={20} color="#dc2626" />
-                <Text className="text-base font-sans-bold text-destructive">
-                  Sign Out
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+          <SignOutButton variant="full" />
         </View>
 
         {/* Version Note */}

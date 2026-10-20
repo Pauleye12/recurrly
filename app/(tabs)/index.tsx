@@ -7,21 +7,24 @@ import {
   HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from "@/constants/data";
+import SignOutButton from "@/components/SignOutButton";
 import { icons } from "@/constants/icons";
 import images from "@/constants/images";
 import "@/global.css";
 import { formatCurrency } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
 import dayjs from "dayjs";
+import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import { useState } from "react";
-import { FlatList, Image, Text, View } from "react-native";
+import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView as ModSAV } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(ModSAV);
 
 export default function App() {
   const { user } = useUser();
+  const router = useRouter();
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
@@ -35,11 +38,20 @@ export default function App() {
         ListHeaderComponent={() => (
           <>
             <View className="home-header">
-              <View className="home-user">
+              <TouchableOpacity
+                className="home-user"
+                onPress={() => router.push("/(tabs)/settings")}
+                activeOpacity={0.8}
+              >
                 <Image source={userAvatar} className="home-avatar" />
-                <Text className="home-user-name">{userName}</Text>
+                <View>
+                  <Text className="home-user-name">{userName}</Text>
+                </View>
+              </TouchableOpacity>
+              <View className="flex-row items-center gap-2.5">
+                <SignOutButton variant="icon" />
+                <Image source={icons.add} className="home-add-icon" />
               </View>
-              <Image source={icons.add} className="home-add-icon" />
             </View>
             <View className="home-balance-card">
               <Text className="home-balance-label">Balance</Text>

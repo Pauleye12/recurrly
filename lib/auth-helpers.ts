@@ -23,8 +23,8 @@ export const validatePassword = (password: string): ValidationResult => {
   if (!password) {
     return { isValid: false, error: "Password is required" };
   }
-  if (password.length < 8) {
-    return { isValid: false, error: "Password must be at least 8 characters" };
+  if (password.length < 15) {
+    return { isValid: false, error: "Password must be at least 15 characters" };
   }
   const hasLetter = /[a-zA-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
@@ -49,7 +49,7 @@ export const validateName = (name: string): ValidationResult => {
 };
 
 export const getPasswordStrength = (
-  password: string
+  password: string,
 ): { score: number; label: string; color: string } => {
   if (!password) return { score: 0, label: "", color: "#e5e7eb" };
 
@@ -57,7 +57,10 @@ export const getPasswordStrength = (
   if (password.length >= 8) score++;
   if (password.length >= 12) score++;
   if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password) || (/[a-z]/.test(password) && /[A-Z]/.test(password))) {
+  if (
+    /[^A-Za-z0-9]/.test(password) ||
+    (/[a-z]/.test(password) && /[A-Z]/.test(password))
+  ) {
     score++;
   }
 
@@ -76,16 +79,11 @@ export const formatAuthError = (err: any): string => {
 
   // Handle Clerk API Error arrays
   const clerkError =
-    err?.errors?.[0] ||
-    (Array.isArray(err) ? err[0] : null) ||
-    err;
+    err?.errors?.[0] || (Array.isArray(err) ? err[0] : null) || err;
 
   const code = clerkError?.code || "";
   const rawMessage =
-    clerkError?.longMessage ||
-    clerkError?.message ||
-    err?.message ||
-    "";
+    clerkError?.longMessage || clerkError?.message || err?.message || "";
 
   switch (code) {
     case "form_identifier_not_found":
@@ -102,6 +100,9 @@ export const formatAuthError = (err: any): string => {
       return "The 6-digit verification code is incorrect. Please double check and try again.";
     case "verification_expired":
       return "This verification code has expired. Please tap 'Resend code' to get a new one.";
+    case "session_not_found":
+    case "resource_not_found":
+      return "Your session has expired. Please sign in again.";
     case "session_exists":
       return "You are already signed in on this device.";
     case "strategy_for_user_invalid":
@@ -114,4 +115,17 @@ export const formatAuthError = (err: any): string => {
       }
       return "Unable to complete request. Please verify your details and try again.";
   }
+};
+
+/**
+ * Returns formatted confirmation text for signing out
+ */
+export const formatSignOutConfirmation = (
+  userName?: string | null,
+): { title: string; message: string } => {
+  const name = userName ? `, ${userName}` : "";
+  return {
+    title: "Sign Out",
+    message: `Are you sure you want to sign out${name}? You will need your login credentials to access your subscriptions again.`,
+  };
 };
