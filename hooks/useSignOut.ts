@@ -1,4 +1,5 @@
 import { formatAuthError } from "@/lib/auth-helpers";
+import { posthog } from "@/lib/posthog";
 import { useClerk } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
@@ -19,7 +20,9 @@ export function useSignOut(options: UseSignOutOptions = {}) {
     try {
       setIsSigningOut(true);
       setError(null);
+      posthog?.capture("user_signed_out");
       await signOut();
+      posthog?.reset();
       options.onSuccess?.();
       const destination = options.redirectTo ?? "/(auth)/SignIn";
       router.replace(destination as any);

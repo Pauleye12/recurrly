@@ -1,4 +1,5 @@
 import { formatAuthError, validateEmail, validatePassword } from "@/lib/auth-helpers";
+import { posthog } from "@/lib/posthog";
 import { useSignUp } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
@@ -142,6 +143,7 @@ export default function SignUpScreen() {
         return;
       }
 
+      posthog?.capture("user_signed_up", { auth_method: "password" });
       router.replace("/(tabs)");
     } catch (err: any) {
       setErrorMsg(formatAuthError(err));

@@ -1,4 +1,5 @@
 import { icons } from "@/constants/icons";
+import { posthog, posthogLog } from "@/lib/posthog";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
@@ -79,7 +80,13 @@ export default function Onboarding() {
         <View className="gap-3">
           <TouchableOpacity
             className="auth-button"
-            onPress={() => router.push("/(auth)/SignUp")}
+            onPress={() => {
+              posthog?.capture("onboarding_started");
+              posthogLog.info("onboarding sign-up started", {
+                flow: "onboarding",
+              });
+              router.push("/(auth)/SignUp");
+            }}
             activeOpacity={0.85}
           >
             <Text className="auth-button-text">Get Started Free</Text>

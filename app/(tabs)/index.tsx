@@ -3,21 +3,30 @@ import SubscriptionCard from "@/components/SubscriptionCard";
 import UpcomingSubCard from "@/components/UpcomingSubCard";
 import {
   HOME_BALANCE,
-  HOME_SUBSCRIPTIONS,
   HOME_USER,
   UPCOMING_SUBSCRIPTIONS,
 } from "@/constants/data";
+import CreateSubscriptionModal from "@/components/CreateSubscriptionModal";
 import SignOutButton from "@/components/SignOutButton";
 import { icons } from "@/constants/icons";
 import images from "@/constants/images";
+import { useSubscriptions } from "@/context/SubscriptionsContext";
 import "@/global.css";
+import { posthog, posthogLog } from "@/lib/posthog";
 import { formatCurrency } from "@/lib/utils";
 import { useUser } from "@clerk/expo";
 import dayjs from "dayjs";
 import { useRouter } from "expo-router";
 import { styled } from "nativewind";
 import { useState } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView as ModSAV } from "react-native-safe-area-context";
 
 const SafeAreaView = styled(ModSAV);
@@ -25,9 +34,26 @@ const SafeAreaView = styled(ModSAV);
 export default function App() {
   const { user } = useUser();
   const router = useRouter();
+  const { subscriptions, addSubscription } = useSubscriptions();
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [expandedSubscriptionId, setExpandedSubscriptionId] = useState<
     string | null
   >(null);
+
+  const handleCreateSubscription = (newSub: Subscription) => {
+    addSubscription(newSub);
+    posthog?.capture("subscription_created", {
+      subscription_id: newSub.id,
+      subscription_name: newSub.name,
+      subscription_category: newSub.category ?? null,
+      billing_interval: newSub.billing,
+      price: newSub.price,
+    });
+    posthogLog.info("subscription created", {
+      subscription_id: newSub.id,
+      name: newSub.name,
+    });
+  };
 
   const userName = user?.firstName || HOME_USER.name;
   const userAvatar = user?.imageUrl ? { uri: user.imageUrl } : images.avatar;
@@ -40,7 +66,10 @@ export default function App() {
             <View className="home-header">
               <TouchableOpacity
                 className="home-user"
-                onPress={() => router.push("/(tabs)/settings")}
+                onPress={() => {
+                  posthog?.capture("account_settings_opened");
+                  router.push("/(tabs)/settings");
+                }}
                 activeOpacity={0.8}
               >
                 <Image source={userAvatar} className="home-avatar" />
@@ -50,7 +79,12 @@ export default function App() {
               </TouchableOpacity>
               <View className="flex-row items-center gap-2.5">
                 <SignOutButton variant="icon" />
-                <Image source={icons.add} className="home-add-icon" />
+                <Pressable
+                  onPress={() => setIsCreateModalVisible(true)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Image source={icons.add} className="home-add-icon" />
+                </Pressable>
               </View>
             </View>
             <View className="home-balance-card">
@@ -82,7 +116,7 @@ export default function App() {
             <ListHeading title="All Subscription" />
           </>
         )}
-        data={HOME_SUBSCRIPTIONS}
+        data={subscriptions}
         keyExtractor={(item) => item.id}
         extraData={expandedSubscriptionId}
         contentContainerClassName="pb-30"
@@ -93,6 +127,17 @@ export default function App() {
             {...item}
             expanded={expandedSubscriptionId === item.id}
             onPress={() => {
+              if (expandedSubscriptionId !== item.id) {
+                posthog?.capture("subscription_card_expanded", {
+                  subscription_id: item.id,
+                  subscription_category: item.category ?? null,
+                  billing_interval: item.billing,
+                  subscription_status: item.status ?? null,
+                });
+                posthogLog.info("subscription card expanded", {
+                  surface: "home",
+                });
+              }
               setExpandedSubscriptionId((prev) => {
                 if (prev === item.id) return null;
                 else return item.id;
@@ -100,6 +145,11 @@ export default function App() {
             }}
           />
         )}
+      />
+      <CreateSubscriptionModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onCreate={handleCreateSubscription}
       />
     </SafeAreaView>
   );

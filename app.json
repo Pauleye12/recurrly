@@ -48,6 +48,12 @@
             "./assets/fonts/PlusJakartaSans-Medium.ttf",
             "./assets/fonts/PlusJakartaSans-Semibold.ttf",
             "./assets/fonts/PlusJakartaSans-ExtraBold.ttf",
+            "./assets/fonts/PlusJakartaSans-Light.ttf",
+            "./assets/fonts/PlusJakartaSans-Regular.ttf",
+            "./assets/fonts/PlusJakartaSans-Bold.ttf",
+            "./assets/fonts/PlusJakartaSans-Medium.ttf",
+            "./assets/fonts/PlusJakartaSans-Semibold.ttf",
+            "./assets/fonts/PlusJakartaSans-ExtraBold.ttf",
             "./assets/fonts/PlusJakartaSans-Light.ttf"
           ]
         }
@@ -56,11 +62,20 @@
       "expo-status-bar",
       "expo-web-browser",
       "@clerk/expo",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-localization",
+      "posthog-react-native/expo"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ccf7e594-67a9-4f3d-8093-1cd002575796"
+      }
+    },
+    "owner": "pauleyes-team"
   }
 }

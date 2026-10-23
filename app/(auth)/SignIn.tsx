@@ -1,4 +1,5 @@
 import { formatAuthError, validateEmail } from "@/lib/auth-helpers";
+import { posthog, posthogLog } from "@/lib/posthog";
 import { useSignIn } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
@@ -71,6 +72,10 @@ export default function SignInScreen() {
           setIsLoading(false);
           return;
         }
+        posthog?.capture("user_signed_in", { auth_method: "password" });
+        posthogLog.info("password sign-in completed", {
+          authentication_method: "password",
+        });
         router.replace("/(tabs)");
       } else {
         setErrorMsg("Please check your email to complete verification.");
@@ -156,6 +161,7 @@ export default function SignInScreen() {
         return;
       }
 
+      posthog?.capture("password_reset_completed");
       router.replace("/(tabs)");
     } catch (err: any) {
       setErrorMsg(formatAuthError(err));
